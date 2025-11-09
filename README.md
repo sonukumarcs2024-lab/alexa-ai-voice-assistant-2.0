@@ -1,58 +1,177 @@
-[Alexa AI Assistant.sonu kumar.html](https://github.com/user-attachments/files/23440397/Alexa.AI.Assistant.sonu.kumar.html)
 <!DOCTYPE html>
-<!-- saved from url=(0029)http://127.0.0.1:5500/ok.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alexa AI Assistant</title>
-    <link rel="stylesheet" href="./Alexa AI Assistant.sonu kumar_files/news.css">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Voice Assistant - Alexa</title>
+  <style>
+    /* ====== BASIC PAGE STYLING ====== */
+    body {
+      background: linear-gradient(135deg, #2b1055, #7597de);
+      color: white;
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .assistant-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      text-align: center;
+      width: 350px;
+      max-width: 90%;
+    }
+
+    .output {
+      background: rgba(255,255,255,0.2);
+      padding: 10px;
+      border-radius: 10px;
+      height: 100px;
+      margin-top: 20px;
+      overflow-y: auto;
+      font-size: 1em;
+      text-align: left;
+    }
+
+    button {
+      margin-top: 20px;
+      background-color: #00b4d8;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      font-size: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(0,180,216,0.8);
+    }
+
+    button:hover {
+      background-color: #0077b6;
+      transform: scale(1.1);
+    }
+
+    .listening {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 5px #90e0ef; }
+      50% { box-shadow: 0 0 25px #00b4d8; }
+      100% { box-shadow: 0 0 5px #90e0ef; }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.8em;
+      color: #eee;
+    }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <h1>Alexa - Your Web Voice Assistant</h1>
-        <div id="chat-box"><div class="message bot">Alexa: Hello, I am Alexa. Click the mic and talk to me!</div></div>
-        <button id="mic-btn">🎤 Talk</button>
-    </div>
+  <h1>Alexa Voice Assistant</h1>
+  <div class="assistant-container">
+    <p><strong>Click the mic and speak:</strong></p>
+    <button id="micBtn">🎤</button>
+    <div class="output" id="output">Say something...</div>
+  </div>
+  <footer>Made with ❤️ using HTML, CSS & JavaScript</footer>
 
-    <script src="./Alexa AI Assistant.sonu kumar_files/news.js.download"></script>
-<!-- Code injected by live-server -->
-<script type="text/javascript">
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
+  <script>
+    // ====== SPEECH RECOGNITION SETUP ======
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    const output = document.getElementById('output');
+    const micBtn = document.getElementById('micBtn');
 
-</body></html>
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    // ====== START LISTENING ======
+    micBtn.addEventListener('click', () => {
+      recognition.start();
+      micBtn.classList.add('listening');
+      speak("Listening...");
+    });
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript.toLowerCase();
+      output.innerHTML = "<b>You said:</b> " + transcript;
+      processCommand(transcript);
+    };
+
+    recognition.onend = () => {
+      micBtn.classList.remove('listening');
+    };
+
+    // ====== SPEECH FUNCTION ======
+    function speak(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      speech.pitch = 1;
+      speech.rate = 1;
+      window.speechSynthesis.speak(speech);
+      output.innerHTML += `<br><b>Alexa:</b> ${text}`;
+    }
+
+    // ====== COMMAND HANDLER ======
+    function processCommand(command) {
+      console.log('Command:', command);
+
+      if (command.includes('hello')) {
+        speak("Hello there! How can I help you today?");
+      }
+      else if (command.includes('your name')) {
+        speak("I am your voice assistant, Alexa!");
+      }
+      else if (command.includes('time')) {
+        const time = new Date().toLocaleTimeString();
+        speak(`The current time is ${time}`);
+      }
+      else if (command.includes('date')) {
+        const date = new Date().toDateString();
+        speak(`Today’s date is ${date}`);
+      }
+      else if (command.includes('open google')) {
+        speak("Opening Google");
+        window.open('https://www.google.com', '_blank');
+      }
+      else if (command.includes('open youtube')) {
+        speak("Opening YouTube");
+        window.open('https://www.youtube.com', '_blank');
+      }
+      else if (command.includes('open facebook')) {
+        speak("Opening Facebook");
+        window.open('https://www.facebook.com', '_blank');
+      }
+      else if (command.includes('how are you')) {
+        speak("I’m doing great! Thanks for asking. How are you?");
+      }
+      else if (command.includes('thank you')) {
+        speak("You’re welcome! Happy to help.");
+      }
+      else if (command.includes('bye')) {
+        speak("Goodbye! Have a great day!");
+      }
+      else {
+        speak("Sorry, I didn’t understand that. Please try again.");
+      }
+    }
+  </script>
+</body>
+</html>
